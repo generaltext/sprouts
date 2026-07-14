@@ -100,11 +100,45 @@ export interface Entry {
 
 // ── file paths (relative to the app's own data folder) ────────────────────────
 
+export const LOG_DIR = 'v0/logs'
+
 export const PATHS = {
   children: 'v0/children.jsonl',
-  /** one activity log per child */
-  log: (childId: string) => `v0/logs/${childId}.jsonl`,
+  /** shard 0 of a child's log (the base file) */
+  log: (childId: string) => `${LOG_DIR}/${childId}.jsonl`,
 } as const
+
+// A child's activity log is SHARDED across `<childId>.jsonl` (shard 0),
+// `<childId>.1.jsonl`, `<childId>.2.jsonl`, … Each shard is kept under the
+// platform's ~900 KiB single-sync-frame cap (a whole file dropped in / an initial
+// snapshot is one frame), so a multi-year log syncs and compacts fine — a single
+// oversized frame is what the server rejects. New writes append to the newest
+// shard and roll to a fresh one when it approaches the target below.
+
+/** Keep shards comfortably under the 900 KiB E2EE frame cap (encryption adds a
+ *  little overhead; this leaves generous headroom). */
+export const SHARD_TARGET_BYTES = 600 * 1024
+
+/** Path of shard `n` for a child (shard 0 is the un-numbered base file). */
+export function shardPath(childId: string, index: number): string {
+  return index === 0 ? `${LOG_DIR}/${childId}.jsonl` : `${LOG_DIR}/${childId}.${index}.jsonl`
+}
+
+/** Is `path` one of this child's log shards? (`<childId>.jsonl` or `<childId>.<n>.jsonl`) */
+export function isLogShard(path: string, childId: string): boolean {
+  const base = `${LOG_DIR}/${childId}`
+  if (path === `${base}.jsonl`) return true
+  if (!path.startsWith(`${base}.`) || !path.endsWith('.jsonl')) return false
+  const mid = path.slice(base.length + 1, path.length - '.jsonl'.length)
+  return /^\d+$/.test(mid)
+}
+
+/** Numeric shard index of a shard path (0 for the base file). */
+export function shardIndex(path: string, childId: string): number {
+  const base = `${LOG_DIR}/${childId}`
+  if (path === `${base}.jsonl`) return 0
+  return Number(path.slice(base.length + 1, path.length - '.jsonl'.length)) || 0
+}
 
 // ── display metadata per kind ─────────────────────────────────────────────────
 

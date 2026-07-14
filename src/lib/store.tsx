@@ -11,13 +11,31 @@ import { type Actor, type Draft, type SproutsEvent, parseAll, serializeEvent } f
 import { foldChildren, foldEntries } from './reducer'
 import { deriveCaregivers } from './caregivers'
 import { newId, ulid } from './ids'
-import { PATHS, type Caregiver, type Child, type Entry } from './types'
+import { PATHS, SHARD_TARGET_BYTES, isLogShard, shardIndex, shardPath, type Caregiver, type Child, type Entry } from './types'
 import { loadDevSeed, type SeedData } from './seed'
 import { demoSeed } from './demo'
 import { getUnitPref, setUnitPref, type UnitSystem } from './units'
 
 const ACTIVE_KEY = 'sprouts.activeChild'
-const NO_CHILD = 'v0/logs/__none__.jsonl'
+
+/** The sharded log paths for a child, present in the workspace, in shard order. */
+function shardPathsFor(childId: string): string[] {
+  return window.gt
+    .files()
+    .filter((p) => isLogShard(p, childId))
+    .sort((a, b) => shardIndex(a, childId) - shardIndex(b, childId))
+}
+
+/** Which shard a new append should be written to: the newest shard, or a fresh
+ *  one when the newest is at/over the size target (keeps every shard under the
+ *  E2EE frame cap so it syncs). */
+function appendShardFor(childId: string): string {
+  const paths = shardPathsFor(childId)
+  if (paths.length === 0) return shardPath(childId, 0)
+  const latest = paths[paths.length - 1]!
+  if (window.gt.subscribeFile(latest).length >= SHARD_TARGET_BYTES) return shardPath(childId, shardIndex(latest, childId) + 1)
+  return latest
+}
 
 export interface ChildFields {
   name: string
@@ -85,9 +103,54 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [childrenState],
   )
 
-  const logPath = activeChildId ? PATHS.log(activeChildId) : NO_CHILD
-  const logText = useGtText(logPath)
-  const entries = useMemo(() => (activeChildId ? foldEntries(parseAll(logText)) : []), [logText, activeChildId])
+  // The active child's log is sharded across several files (see types.ts). We
+  // subscribe to every shard, fold the union, and re-fold on any shard change or
+  // when the shard set changes (a new shard rolled in, or dropped-in files land).
+  const [entries, setEntries] = useState<Entry[]>([])
+  useEffect(() => {
+    if (!activeChildId) {
+      setEntries([])
+      return
+    }
+    const gt = window.gt
+    type Sub = { text: ReturnType<typeof gt.subscribeFile>; cb: () => void }
+    const subs = new Map<string, Sub>()
+
+    const recompute = () => {
+      const all: SproutsEvent[] = []
+      for (const p of subs.keys()) all.push(...parseAll(gt.subscribeFile(p).toString()))
+      setEntries(foldEntries(all))
+    }
+    const resync = () => {
+      const paths = shardPathsFor(activeChildId)
+      for (const p of paths) {
+        if (subs.has(p)) continue
+        const text = gt.subscribeFile(p)
+        const cb = () => recompute()
+        text.observe(cb)
+        subs.set(p, { text, cb })
+      }
+      for (const [p, s] of subs) {
+        if (paths.includes(p)) continue
+        s.text.unobserve(s.cb)
+        gt.unsubscribeFile(p)
+        subs.delete(p)
+      }
+      recompute()
+    }
+
+    resync()
+    const stopFiles = gt.watchFiles(() => resync()) // new shards appearing/leaving
+    return () => {
+      stopFiles()
+      for (const [p, s] of subs) {
+        s.text.unobserve(s.cb)
+        gt.unsubscribeFile(p)
+      }
+      subs.clear()
+    }
+  }, [activeChildId])
+
   const caregivers = useMemo(() => deriveCaregivers(entries, meRef.current), [entries, ready])
 
   // ── writes ──────────────────────────────────────────────────────────────────
@@ -141,11 +204,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [append],
   )
 
+  // All writes append to the active shard (new entries, edits, and removes alike —
+  // the fold merges across shards and last-writer-wins by (ts, id), so an edit or
+  // remove appended to the newest shard supersedes the original wherever it lives).
   const logEntry = useCallback<StoreValue['logEntry']>(
     async (data) => {
       if (!activeChildId) throw new Error('no active child')
       const id = newId('ent')
-      await append(PATHS.log(activeChildId), [{ type: 'entry.log', subject: id, data }])
+      await append(appendShardFor(activeChildId), [{ type: 'entry.log', subject: id, data }])
       return id
     },
     [append, activeChildId],
@@ -153,14 +219,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateEntry = useCallback<StoreValue['updateEntry']>(
     async (id, data) => {
       if (!activeChildId) return
-      await append(PATHS.log(activeChildId), [{ type: 'entry.log', subject: id, data }])
+      await append(appendShardFor(activeChildId), [{ type: 'entry.log', subject: id, data }])
     },
     [append, activeChildId],
   )
   const removeEntry = useCallback<StoreValue['removeEntry']>(
     async (id) => {
       if (!activeChildId) return
-      await append(PATHS.log(activeChildId), [{ type: 'entry.remove', subject: id }])
+      await append(appendShardFor(activeChildId), [{ type: 'entry.remove', subject: id }])
     },
     [append, activeChildId],
   )
@@ -193,8 +259,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   async function writeSeed(seed: SeedData): Promise<void> {
     await window.gt.writeFile(PATHS.children, seed.children.map(serializeEvent).join('\n') + '\n')
+    // Write each child's log SHARDED under the size target, so the seed mirrors how
+    // real data is stored (and never lands a single oversized file).
     for (const [cid, evs] of Object.entries(seed.logs)) {
-      await window.gt.writeFile(PATHS.log(cid), evs.map(serializeEvent).join('\n') + '\n')
+      let shard = 0
+      let buf = ''
+      const flush = async () => {
+        if (!buf) return
+        await window.gt.writeFile(shardPath(cid, shard), buf)
+        shard++
+        buf = ''
+      }
+      for (const ev of evs) {
+        buf += serializeEvent(ev) + '\n'
+        if (buf.length >= SHARD_TARGET_BYTES) await flush()
+      }
+      await flush()
     }
     const first = seed.children.find((e) => e.type === 'child.create')
     if (first) setActiveChild(first.subject)
