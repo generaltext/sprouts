@@ -1,0 +1,40 @@
+{
+  "name": "sprouts",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A calm, private baby log: feeds, sleep, diapers, growth, milestones — logged from either parent's phone, kept as plain files you own. With a print-ready poster of the whole first years.",
+  "license": "MIT",
+  "author": "General Text & Computing Company",
+  "homepage": "https://www.generaltext.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/generaltext/sprouts"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "nara": "node scripts/build-nara.mjs",
+    "who": "node scripts/build-who.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^0.469.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^3.0.0"
+  }
+}
