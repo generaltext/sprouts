@@ -3,7 +3,7 @@
   "displayName": "Sprouts",
   "version": "0.1.1",
   "gtApi": "^1.0",
-  "blurb": "An ad-free, calm baby log: feeds, sleep, diapers, growth, milestones. Logged from a caregivers's phone or desktop, kept as plain files you own.",
+  "blurb": "An ad-free, calm baby log: feeds, sleep, diapers, growth, milestones. Logged from a caregiver's phone or desktop, kept as plain files you own.",
   "color": "green",
   "tags": ["baby", "family", "log", "sleep", "keepsake"],
   "repository": "https://github.com/generaltext/sprouts",
