@@ -13,8 +13,10 @@ account.
 
 **Storage — append-only event logs, one per child.** Multi-child is first-class:
 `v0/children.jsonl` holds child profiles (`child.create/update/archive`), and each
-child's activities live in their own `v0/logs/<childId>.jsonl` — one immutable JSON
-event per line (`entry.log` / `entry.remove`). The UI is a projection folded from the
+child's activities live in their own sharded log — `v0/logs/<childId>.0.jsonl`,
+`.1.jsonl`, … numbered files that grow forward in time (shard 0 oldest; a new file
+is only added, never renamed), each kept under the platform's ~900 KiB single-frame
+sync cap — one immutable JSON event per line (`entry.log` / `entry.remove`). The UI is a projection folded from the
 log (`src/lib/reducer.ts`). Appends read the freshest file content and add to the end,
 so the runtime diffs each write to a pure end-insertion and concurrent appends from
 two phones both survive. Nothing is rewritten in place; editing an entry is a
@@ -87,4 +89,9 @@ pnpm who         # regenerate the bundled WHO growth tables
 ## Files it writes
 
 - `v0/children.jsonl` — child profiles (name, birth date, sex).
-- `v0/logs/<childId>.jsonl` — one append-only activity log per child.
+- `v0/logs/<childId>.0.jsonl`, `.1.jsonl`, … — each child's append-only activity
+  log, sharded into numbered files (shard 0 oldest, growing forward) so no file
+  exceeds the sync size cap. Bulk/historical data is best brought in via the app's
+  **Import log** action (Settings), which writes through the FileAPI — dragging a
+  file into the workspace folder on desktop ingests content but doesn't register or
+  sync it.

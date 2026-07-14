@@ -28,10 +28,12 @@ book, and it's yours forever.
 ## What it writes
 
 - `v0/children.jsonl`: your children's profiles (name, birth date, sex).
-- `v0/logs/<childId>.jsonl`: one append-only activity log per child. Nothing is
-  ever rewritten in place, so it merges cleanly across every device that logs to
-  it. Who logged each entry is recorded on the entry itself, so caregivers need no
-  setup: opening the workspace and logging is all it takes.
+- `v0/logs/<childId>.0.jsonl`, `.1.jsonl`, … : each child's append-only activity
+  log, sharded into numbered files that grow forward in time (shard 0 is the oldest;
+  a new file is only ever added, never renamed). Nothing is rewritten in place, so it
+  merges cleanly across every device that logs to it, and no single file gets large
+  enough to trip the sync size limit. Who logged each entry is recorded on the entry
+  itself, so caregivers need no setup: opening the workspace and logging is all it takes.
 
 ## On predictions
 

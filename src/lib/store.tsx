@@ -63,6 +63,10 @@ interface StoreValue {
   /** Re-log an existing entry with a full new payload (edit). */
   updateEntry: (id: string, data: Record<string, unknown>) => Promise<void>
   removeEntry: (id: string) => Promise<void>
+  /** Bulk-import already-formed events into the active child's log (migration).
+   *  Preserves each event's id/ts/actor, dedupes against what's already there,
+   *  and writes forward across shards under the sync cap. Returns counts. */
+  importEvents: (events: SproutsEvent[]) => Promise<{ added: number; skipped: number }>
 }
 
 const StoreContext = createContext<StoreValue | null>(null)
@@ -231,6 +235,50 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [append, activeChildId],
   )
 
+  const importEvents = useCallback<StoreValue['importEvents']>(
+    async (incoming) => {
+      const childId = activeChildId
+      if (!childId) throw new Error('no active child')
+      const gt = window.gt
+      // Dedupe against every event already in this child's shards, so re-importing
+      // the same file is a no-op rather than doubling the log.
+      const seen = new Set<string>()
+      for (const p of shardPathsFor(childId)) for (const ev of parseAll(gt.subscribeFile(p).toString())) seen.add(ev.id)
+      const fresh = incoming
+        .filter((e) => e && typeof e.id === 'string' && typeof e.type === 'string' && e.type.startsWith('entry.') && !seen.has(e.id))
+        .sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : a.id < b.id ? -1 : 1)) // oldest first → shard 0 up
+      if (fresh.length === 0) return { added: 0, skipped: incoming.length }
+
+      // Write forward across shards, tracking the shard index + size LOCALLY (not
+      // via gt.files(), whose file list lags inside a tight write loop and would
+      // keep re-picking the same shard → one oversized file). Start at the newest
+      // existing shard (append to it) and roll to a fresh numbered shard whenever
+      // the target is reached. Each writeFile is one end-insertion under the cap.
+      const existing = shardPathsFor(childId)
+      const newest = existing[existing.length - 1]
+      let shard = newest ? shardIndex(newest, childId) : 0
+      let buf = newest ? gt.subscribeFile(newest).toString() : ''
+      if (buf.length > 0 && !buf.endsWith('\n')) buf += '\n'
+
+      const run = writeQueue.current.then(async () => {
+        for (const ev of fresh) {
+          const line = serializeEvent(ev) + '\n'
+          if (buf.length > 0 && buf.length + line.length > SHARD_TARGET_BYTES) {
+            await gt.writeFile(shardPath(childId, shard), buf)
+            shard++
+            buf = ''
+          }
+          buf += line
+        }
+        if (buf.length > 0) await gt.writeFile(shardPath(childId, shard), buf)
+      })
+      writeQueue.current = run.catch(() => undefined)
+      await run
+      return { added: fresh.length, skipped: incoming.length - fresh.length }
+    },
+    [activeChildId],
+  )
+
   // ── boot: identity, then seed if the workspace is empty ───────────────────────
 
   useEffect(() => {
@@ -260,8 +308,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   async function writeSeed(seed: SeedData): Promise<void> {
     await window.gt.writeFile(PATHS.children, seed.children.map(serializeEvent).join('\n') + '\n')
     // Write each child's log SHARDED under the size target, so the seed mirrors how
-    // real data is stored (and never lands a single oversized file).
+    // real data is stored. Sorted oldest-first and filled forward, so shard 0 holds
+    // the earliest records and higher shards hold newer ones.
     for (const [cid, evs] of Object.entries(seed.logs)) {
+      const sorted = [...evs].sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : a.id < b.id ? -1 : 1))
       let shard = 0
       let buf = ''
       const flush = async () => {
@@ -270,7 +320,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         shard++
         buf = ''
       }
-      for (const ev of evs) {
+      for (const ev of sorted) {
         buf += serializeEvent(ev) + '\n'
         if (buf.length >= SHARD_TARGET_BYTES) await flush()
       }
@@ -314,8 +364,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       logEntry,
       updateEntry,
       removeEntry,
+      importEvents,
     }),
-    [ready, childList, activeChild, activeChildId, setActiveChild, caregivers, entries, units, setUnits, addChild, updateChild, archiveChild, logEntry, updateEntry, removeEntry],
+    [ready, childList, activeChild, activeChildId, setActiveChild, caregivers, entries, units, setUnits, addChild, updateChild, archiveChild, logEntry, updateEntry, removeEntry, importEvents],
   )
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>

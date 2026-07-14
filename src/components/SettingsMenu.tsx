@@ -6,6 +6,7 @@ import { Moon, Sun } from 'lucide-react'
 import { useStore } from '~/lib/store'
 import { useTheme } from '~/hooks/use-theme'
 import { Segmented } from '~/components/ui'
+import { ImportData } from '~/components/ImportData'
 import type { UnitSystem } from '~/lib/units'
 
 export function SettingsMenu({ children }: { children: ReactNode }) {
@@ -53,6 +54,11 @@ export function SettingsMenu({ children }: { children: ReactNode }) {
               </button>
             </div>
           )}
+
+          <div className="border-t border-line pt-3">
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-fg3">Import</div>
+            <ImportData onDone={() => setOpen(false)} />
+          </div>
 
           <p className="border-t border-line pt-3 text-xs leading-relaxed text-fg4">
             Your data lives as plain files in your workspace. No predictions, no ads, no account.
