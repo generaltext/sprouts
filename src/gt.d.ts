@@ -40,6 +40,12 @@ export interface GtRuntime {
   subscribeFile(path: string): GtText
   unsubscribeFile(path: string): void
 
+  /** Resolves once a file's initial state has synced from the server (empty for a
+   *  genuinely new file). `ready` only means the WORKSPACE connected; per-file
+   *  content arrives after. Await this before deciding whether to seed, so you
+   *  don't duplicate data whose content simply hasn't arrived yet. */
+  whenFileSynced(path: string): Promise<void>
+
   // Whole-file ops (writeFile diffs internally — merge-friendly).
   readFile(path: string): Promise<string>
   writeFile(path: string, content: string): Promise<void>

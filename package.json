@@ -1,7 +1,7 @@
 {
   "name": "sprouts",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "A calm, private baby log: feeds, sleep, diapers, growth, milestones — logged from either parent's phone, kept as plain files you own. With a print-ready poster of the whole first years.",
   "license": "MIT",

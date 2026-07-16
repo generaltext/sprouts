@@ -289,6 +289,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (done) return
 
       if (!seeded.current) {
+        // `ready` only means the workspace connected; the children file's content
+        // arrives after. Wait for it to sync before deciding to seed, or we'd read
+        // an empty file and re-seed duplicate children on every open.
+        await window.gt.whenFileSynced(PATHS.children)
+        if (done) return
         const hasChildren = parseAll(window.gt.subscribeFile(PATHS.children).toString()).some((e) => e.type === 'child.create')
         if (!hasChildren) {
           seeded.current = true
