@@ -4,6 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Dev-only: inject the platform `window.gt` runtime so Sprouts runs standalone
@@ -22,7 +24,7 @@ function gtRuntime(): Plugin {
 
 export default defineConfig({
   base: './',
-  plugins: [react(), tailwindcss(), gtRuntime()],
+  plugins: [react(), tailwindcss(), gtRuntime(), cloudflare()],
   resolve: {
     alias: { '~': resolve(__dirname, 'src') },
   },
