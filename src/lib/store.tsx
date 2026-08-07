@@ -113,8 +113,10 @@ async function resolveMe(): Promise<Actor> {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
+  // Named `…State` on purpose: `setUnits` below wraps this and persists the pref.
+  // eslint-disable-next-line react/hook-use-state
   const [units, setUnitsState] = useState<UnitSystem>(() => getUnitPref())
-  const [activeChildId, setActiveId] = useState<string | null>(() =>
+  const [activeChildId, setActiveChildId] = useState<string | null>(() =>
     localStorage.getItem(ACTIVE_KEY),
   )
 
@@ -178,6 +180,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [activeChildId])
 
+  // `meRef.current` is a ref, so it can't trigger anything; `ready` flipping is what
+  // says it has been populated. That's why it's in the list.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const caregivers = useMemo(() => deriveCaregivers(entries, meRef.current), [entries, ready])
 
   // ── writes ──────────────────────────────────────────────────────────────────
@@ -204,7 +209,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setActiveChild = useCallback((id: string) => {
-    setActiveId(id)
+    setActiveChildId(id)
     localStorage.setItem(ACTIVE_KEY, id)
   }, [])
 
