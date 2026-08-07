@@ -21,6 +21,16 @@ function gtRuntime(): Plugin {
 }
 
 export default defineConfig({
+  build: {
+    // Ship readable code. The published bytes are what a person forking this app,
+    // or an agent asked to change it, has to work from — a minified bundle can be
+    // run but not read, fixed, or continued.
+    minify: false,
+    // No sourcemap: a separate .js.map is never published (the install crawler only
+    // fetches assets/* referenced from index.html), and inlining the sources would
+    // multiply the bundle that lands in every installing workspace.
+    sourcemap: false,
+  },
   base: './',
   plugins: [react(), tailwindcss(), gtRuntime()],
   resolve: {
