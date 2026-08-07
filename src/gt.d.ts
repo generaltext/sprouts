@@ -58,6 +58,17 @@ export interface GtRuntime {
     event: 'connected' | 'disconnected' | 'mode-changed' | 'error' | 'theme-changed',
     cb: (...args: unknown[]) => void,
   ): () => void
+  /** Report the app's in-app location to the shell, which mirrors it into the page
+   *  URL fragment — so a refresh restores the view, any view can be linked, and
+   *  browser back/forward step through the app. Replaces the current entry by
+   *  default (safe to call on every keystroke); pass `{ push: true }` on a real
+   *  navigation. Optional: absent on older runtimes, and a no-op standalone. */
+  setLocation?(path: string, opts?: { push?: boolean }): void
+  /** Shell-driven location changes: fires once at boot with the location the user
+   *  opened (a deep link, or a refresh restoring the fragment) and again on every
+   *  back/forward step. Returns an unsubscribe. Optional: absent on older runtimes. */
+  onLocation?(cb: (path: string) => void): () => void
+
 }
 
 declare global {

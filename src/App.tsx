@@ -13,8 +13,12 @@ import { Trends } from '~/components/Trends'
 import { PosterView } from '~/components/PosterView'
 import { AddChild } from '~/components/AddChild'
 import { SettingsMenu } from '~/components/SettingsMenu'
+import { useGtLocation } from '~/lib/gt-location'
 
 type View = 'home' | 'timeline' | 'trends'
+
+const VIEWS: View[] = ['home', 'timeline', 'trends']
+const isView = (v: string): v is View => (VIEWS as string[]).includes(v)
 
 const TABS: { view: View; label: string; icon: typeof Home }[] = [
   { view: 'home', label: 'Home', icon: Home },
@@ -27,6 +31,14 @@ export function App() {
   useTheme()
   const [view, setView] = useState<View>('home')
   const [poster, setPoster] = useState(false)
+
+  // The poster is a full overlay, so it's a destination of its own rather than a
+  // flag on the view underneath it.
+  useGtLocation(poster ? '/poster' : `/${view}`, (path) => {
+    const seg = path.slice(1).split('?')[0] ?? ''
+    setPoster(seg === 'poster')
+    if (isView(seg)) setView(seg)
+  })
 
   if (!ready) {
     return (
