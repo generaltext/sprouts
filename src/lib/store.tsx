@@ -5,15 +5,35 @@
 // both survive. Children are multi: a switcher picks the active one, whose log
 // file drives the dashboard / timeline / summaries / poster.
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
+
 import { useGtText } from '~/hooks/use-gt-files'
-import { type Actor, type Draft, type SproutsEvent, parseAll, serializeEvent } from './events'
-import { foldChildren, foldEntries } from './reducer'
+
 import { deriveCaregivers } from './caregivers'
-import { newId, ulid } from './ids'
-import { PATHS, SHARD_TARGET_BYTES, isLogShard, shardIndex, shardPath, type Caregiver, type Child, type Entry } from './types'
-import { loadDevSeed, type SeedData } from './seed'
 import { demoSeed } from './demo'
+import { type Actor, type Draft, type SproutsEvent, parseAll, serializeEvent } from './events'
+import { newId, ulid } from './ids'
+import { foldChildren, foldEntries } from './reducer'
+import { loadDevSeed, type SeedData } from './seed'
+import {
+  PATHS,
+  SHARD_TARGET_BYTES,
+  isLogShard,
+  shardIndex,
+  shardPath,
+  type Caregiver,
+  type Child,
+  type Entry,
+} from './types'
 import { getUnitPref, setUnitPref, type UnitSystem } from './units'
 
 const ACTIVE_KEY = 'sprouts.activeChild'
@@ -33,7 +53,8 @@ function appendShardFor(childId: string): string {
   const paths = shardPathsFor(childId)
   if (paths.length === 0) return shardPath(childId, 0)
   const latest = paths[paths.length - 1]!
-  if (window.gt.subscribeFile(latest).length >= SHARD_TARGET_BYTES) return shardPath(childId, shardIndex(latest, childId) + 1)
+  if (window.gt.subscribeFile(latest).length >= SHARD_TARGET_BYTES)
+    return shardPath(childId, shardIndex(latest, childId) + 1)
   return latest
 }
 
@@ -93,7 +114,9 @@ async function resolveMe(): Promise<Actor> {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
   const [units, setUnitsState] = useState<UnitSystem>(() => getUnitPref())
-  const [activeChildId, setActiveId] = useState<string | null>(() => localStorage.getItem(ACTIVE_KEY))
+  const [activeChildId, setActiveId] = useState<string | null>(() =>
+    localStorage.getItem(ACTIVE_KEY),
+  )
 
   const meRef = useRef<Actor | null>(null)
   const writeQueue = useRef<Promise<unknown>>(Promise.resolve())
@@ -200,11 +223,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [append, setActiveChild],
   )
   const updateChild = useCallback<StoreValue['updateChild']>(
-    async (id, patch) => append(PATHS.children, [{ type: 'child.update', subject: id, data: { ...patch } }]),
+    async (id, patch) =>
+      append(PATHS.children, [{ type: 'child.update', subject: id, data: { ...patch } }]),
     [append],
   )
   const archiveChild = useCallback<StoreValue['archiveChild']>(
-    async (id, archived) => append(PATHS.children, [{ type: 'child.archive', subject: id, data: { archived } }]),
+    async (id, archived) =>
+      append(PATHS.children, [{ type: 'child.archive', subject: id, data: { archived } }]),
     [append],
   )
 
@@ -243,9 +268,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       // Dedupe against every event already in this child's shards, so re-importing
       // the same file is a no-op rather than doubling the log.
       const seen = new Set<string>()
-      for (const p of shardPathsFor(childId)) for (const ev of parseAll(gt.subscribeFile(p).toString())) seen.add(ev.id)
+      for (const p of shardPathsFor(childId))
+        for (const ev of parseAll(gt.subscribeFile(p).toString())) seen.add(ev.id)
       const fresh = incoming
-        .filter((e) => e && typeof e.id === 'string' && typeof e.type === 'string' && e.type.startsWith('entry.') && !seen.has(e.id))
+        .filter(
+          (e) =>
+            e &&
+            typeof e.id === 'string' &&
+            typeof e.type === 'string' &&
+            e.type.startsWith('entry.') &&
+            !seen.has(e.id),
+        )
         .sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : a.id < b.id ? -1 : 1)) // oldest first → shard 0 up
       if (fresh.length === 0) return { added: 0, skipped: incoming.length }
 
@@ -294,7 +327,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         // an empty file and re-seed duplicate children on every open.
         await window.gt.whenFileSynced(PATHS.children)
         if (done) return
-        const hasChildren = parseAll(window.gt.subscribeFile(PATHS.children).toString()).some((e) => e.type === 'child.create')
+        const hasChildren = parseAll(window.gt.subscribeFile(PATHS.children).toString()).some(
+          (e) => e.type === 'child.create',
+        )
         if (!hasChildren) {
           seeded.current = true
           const seed: SeedData | null = isDemoSession() ? demoSeed() : loadDevSeed()
@@ -316,7 +351,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // real data is stored. Sorted oldest-first and filled forward, so shard 0 holds
     // the earliest records and higher shards hold newer ones.
     for (const [cid, evs] of Object.entries(seed.logs)) {
-      const sorted = [...evs].sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : a.id < b.id ? -1 : 1))
+      const sorted = [...evs].sort((a, b) =>
+        a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : a.id < b.id ? -1 : 1,
+      )
       let shard = 0
       let buf = ''
       const flush = async () => {
@@ -371,7 +408,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       removeEntry,
       importEvents,
     }),
-    [ready, childList, activeChild, activeChildId, setActiveChild, caregivers, entries, units, setUnits, addChild, updateChild, archiveChild, logEntry, updateEntry, removeEntry, importEvents],
+    [
+      ready,
+      childList,
+      activeChild,
+      activeChildId,
+      setActiveChild,
+      caregivers,
+      entries,
+      units,
+      setUnits,
+      addChild,
+      updateChild,
+      archiveChild,
+      logEntry,
+      updateEntry,
+      removeEntry,
+      importEvents,
+    ],
   )
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>

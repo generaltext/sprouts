@@ -32,7 +32,17 @@ export interface DaySummary {
 }
 
 export function daySummary(entries: Entry[], key: string): DaySummary {
-  const s: DaySummary = { sleepSec: 0, longestSleepSec: 0, napCount: 0, feedCount: 0, feedVolumeMl: 0, breastSec: 0, diaperTotal: 0, diaperWet: 0, diaperDirty: 0 }
+  const s: DaySummary = {
+    sleepSec: 0,
+    longestSleepSec: 0,
+    napCount: 0,
+    feedCount: 0,
+    feedVolumeMl: 0,
+    breastSec: 0,
+    diaperTotal: 0,
+    diaperWet: 0,
+    diaperDirty: 0,
+  }
   for (const e of entries) {
     if (dayKey(e.start) !== key) continue
     if (e.kind === 'sleep' && e.end) {
@@ -72,7 +82,12 @@ export function logSpan(entries: Entry[]): { first: string; last: string } | nul
 }
 
 /** All-time headline totals in ONE pass (avoids per-day rescans over a big log). */
-export function allTimeTotals(entries: Entry[]): { dayCount: number; sleepSec: number; feeds: number; diapers: number } {
+export function allTimeTotals(entries: Entry[]): {
+  dayCount: number
+  sleepSec: number
+  feeds: number
+  diapers: number
+} {
   const days = new Set<string>()
   let sleepSec = 0
   let feeds = 0

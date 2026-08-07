@@ -16,10 +16,46 @@ export interface PosterTheme {
 }
 
 export const POSTER_THEMES: PosterTheme[] = [
-  { name: 'Night', bg: '#0c1322', track: '#161f33', sleep: '#6b7fd0', feed: '#e0983f', diaper: '#4faf9a', fg: '#eef2fb', sub: '#8794b5' },
-  { name: 'Paper', bg: '#f4efe4', track: '#e7dfcc', sleep: '#4a5d99', feed: '#c8801f', diaper: '#3f8f7c', fg: '#2a2418', sub: '#8a8069' },
-  { name: 'Meadow', bg: '#0f1a12', track: '#182619', sleep: '#7fa9e0', feed: '#e6b054', diaper: '#57c3ab', fg: '#eaf3ea', sub: '#7f9080' },
-  { name: 'Dusk', bg: '#241826', track: '#33223a', sleep: '#b98fe0', feed: '#e88f6a', diaper: '#5ec5c0', fg: '#f4ecf6', sub: '#9d86a6' },
+  {
+    name: 'Night',
+    bg: '#0c1322',
+    track: '#161f33',
+    sleep: '#6b7fd0',
+    feed: '#e0983f',
+    diaper: '#4faf9a',
+    fg: '#eef2fb',
+    sub: '#8794b5',
+  },
+  {
+    name: 'Paper',
+    bg: '#f4efe4',
+    track: '#e7dfcc',
+    sleep: '#4a5d99',
+    feed: '#c8801f',
+    diaper: '#3f8f7c',
+    fg: '#2a2418',
+    sub: '#8a8069',
+  },
+  {
+    name: 'Meadow',
+    bg: '#0f1a12',
+    track: '#182619',
+    sleep: '#7fa9e0',
+    feed: '#e6b054',
+    diaper: '#57c3ab',
+    fg: '#eaf3ea',
+    sub: '#7f9080',
+  },
+  {
+    name: 'Dusk',
+    bg: '#241826',
+    track: '#33223a',
+    sleep: '#b98fe0',
+    feed: '#e88f6a',
+    diaper: '#5ec5c0',
+    fg: '#f4ecf6',
+    sub: '#9d86a6',
+  },
 ]
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -35,7 +71,13 @@ export interface PosterOptions {
   sleepColor?: string
 }
 
-export function drawPoster(ctx: CanvasRenderingContext2D, w: number, h: number, days: PosterDay[], o: PosterOptions): void {
+export function drawPoster(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  days: PosterDay[],
+  o: PosterOptions,
+): void {
   const t = o.theme
   ctx.save()
   ctx.fillStyle = t.bg
@@ -53,7 +95,14 @@ export function drawPoster(ctx: CanvasRenderingContext2D, w: number, h: number, 
 
 // ── stacked day-rows ──────────────────────────────────────────────────────────
 
-function drawRows(ctx: CanvasRenderingContext2D, w: number, h: number, days: PosterDay[], o: PosterOptions, sleepColor: string): void {
+function drawRows(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  days: PosterDay[],
+  o: PosterOptions,
+  sleepColor: string,
+): void {
   const t = o.theme
   const padX = w * 0.11
   const padTop = h * 0.14
@@ -129,7 +178,10 @@ function drawRows(ctx: CanvasRenderingContext2D, w: number, h: number, days: Pos
     if (d.getMonth() !== lastMonth) {
       lastMonth = d.getMonth()
       const ry = padTop + i * rowH
-      const label = d.getMonth() === 0 || i === 0 ? `${MONTHS[d.getMonth()]} ${d.getFullYear()}` : MONTHS[d.getMonth()]!
+      const label =
+        d.getMonth() === 0 || i === 0
+          ? `${MONTHS[d.getMonth()]} ${d.getFullYear()}`
+          : MONTHS[d.getMonth()]!
       ctx.fillText(label, x0 - 10 * unit, ry + 4 * unit)
       ctx.strokeStyle = t.sub
       ctx.globalAlpha = 0.25
@@ -146,7 +198,14 @@ function drawRows(ctx: CanvasRenderingContext2D, w: number, h: number, days: Pos
 
 // ── radial spiral ─────────────────────────────────────────────────────────────
 
-function drawSpiral(ctx: CanvasRenderingContext2D, w: number, h: number, days: PosterDay[], o: PosterOptions, sleepColor: string): void {
+function drawSpiral(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  days: PosterDay[],
+  o: PosterOptions,
+  sleepColor: string,
+): void {
   const t = o.theme
   const cx = w / 2
   const cy = h * 0.5 + h * 0.03
@@ -192,7 +251,13 @@ function drawSpiral(ctx: CanvasRenderingContext2D, w: number, h: number, days: P
       for (const f of getter(days[i]!)) {
         const a = ang(f)
         ctx.beginPath()
-        ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, Math.max(0.5, ring * 0.5), 0, Math.PI * 2)
+        ctx.arc(
+          cx + Math.cos(a) * r,
+          cy + Math.sin(a) * r,
+          Math.max(0.5, ring * 0.5),
+          0,
+          Math.PI * 2,
+        )
         ctx.fill()
       }
     }
@@ -205,7 +270,12 @@ function drawSpiral(ctx: CanvasRenderingContext2D, w: number, h: number, days: P
   ctx.font = `${Math.round(12 * unit)}px system-ui, sans-serif`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  const labels: [number, string][] = [[0, '12a'], [0.25, '6a'], [0.5, '12p'], [0.75, '6p']]
+  const labels: [number, string][] = [
+    [0, '12a'],
+    [0.25, '6a'],
+    [0.5, '12p'],
+    [0.75, '6p'],
+  ]
   for (const [f, label] of labels) {
     const a = ang(f)
     const rl = rOuter + 22 * unit
@@ -217,7 +287,13 @@ function drawSpiral(ctx: CanvasRenderingContext2D, w: number, h: number, days: P
 
 // ── shared title block ────────────────────────────────────────────────────────
 
-function drawTitle(ctx: CanvasRenderingContext2D, w: number, h: number, o: PosterOptions, days: PosterDay[]): void {
+function drawTitle(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  o: PosterOptions,
+  days: PosterDay[],
+): void {
   const t = o.theme
   const unit = Math.max(w, h) / 1100
   const padX = w * (o.style === 'rows' ? 0.11 : 0.08)
@@ -259,7 +335,11 @@ function drawTitle(ctx: CanvasRenderingContext2D, w: number, h: number, o: Poste
   }
   ctx.fillStyle = t.sub
   ctx.font = `400 ${Math.round(h * 0.014)}px system-ui, sans-serif`
-  ctx.fillText(`${days.length} days`, w * (o.style === 'rows' ? 0.95 : 0.92), legendY + legSize * 1.6)
+  ctx.fillText(
+    `${days.length} days`,
+    w * (o.style === 'rows' ? 0.95 : 0.92),
+    legendY + legSize * 1.6,
+  )
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
 }

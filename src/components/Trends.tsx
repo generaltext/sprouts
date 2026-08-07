@@ -3,11 +3,12 @@
 // record, surfaced. No predictions.
 
 import { useMemo } from 'react'
-import { useStore } from '~/lib/store'
-import { formatDuration } from '~/lib/dates'
-import { allTimeTotals } from '~/lib/summary'
-import { WeekChart } from '~/components/WeekChart'
+
 import { GrowthChart } from '~/components/GrowthChart'
+import { WeekChart } from '~/components/WeekChart'
+import { formatDuration } from '~/lib/dates'
+import { useStore } from '~/lib/store'
+import { allTimeTotals } from '~/lib/summary'
 
 export function Trends() {
   const { entries } = useStore()
@@ -16,7 +17,11 @@ export function Trends() {
   const totals = useMemo(() => allTimeTotals(entries), [entries])
 
   if (entries.length === 0) {
-    return <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center text-sm text-fg3">Log a few activities to see trends here.</div>
+    return (
+      <div className="text-fg3 mx-auto w-full max-w-3xl px-4 py-16 text-center text-sm">
+        Log a few activities to see trends here.
+      </div>
+    )
   }
 
   return (
@@ -39,8 +44,9 @@ export function Trends() {
         <GrowthChart />
       </section>
 
-      <p className="px-1 text-center text-xs text-fg4">
-        {entries.length} activities logged. Sprouts shows what happened, not what should. No predictions.
+      <p className="text-fg4 px-1 text-center text-xs">
+        {entries.length} activities logged. Sprouts shows what happened, not what should. No
+        predictions.
       </p>
     </div>
   )
@@ -49,8 +55,11 @@ export function Trends() {
 function Big({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div className="card p-3">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-fg3">{label}</div>
-      <div className="tnum text-2xl font-semibold" style={color ? { color: `var(${color})` } : undefined}>
+      <div className="text-fg3 text-[11px] font-medium tracking-wide uppercase">{label}</div>
+      <div
+        className="tnum text-2xl font-semibold"
+        style={color ? { color: `var(${color})` } : undefined}
+      >
         {value}
       </div>
     </div>

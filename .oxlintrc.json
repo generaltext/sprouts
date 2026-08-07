@@ -1,8 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "react"
-  ],
+  "plugins": ["react"],
   "rules": {
     "no-unused-vars": "warn",
     "no-console": "off",
@@ -11,8 +9,5 @@
     "react/exhaustive-deps": "error",
     "react/hook-use-state": "error"
   },
-  "ignorePatterns": [
-    "node_modules",
-    "dist"
-  ]
+  "ignorePatterns": ["node_modules", "dist"]
 }

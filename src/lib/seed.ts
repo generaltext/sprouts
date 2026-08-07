@@ -20,7 +20,10 @@ export interface SeedData {
 
 export function loadDevSeed(): SeedData | null {
   if (!import.meta.env.DEV) return null
-  const mods = import.meta.glob('../data/seed.dev.json', { eager: true }) as Record<string, { default: SeedData }>
+  const mods = import.meta.glob('../data/seed.dev.json', { eager: true }) as Record<
+    string,
+    { default: SeedData }
+  >
   const first = Object.values(mods)[0]
   return first?.default ?? null
 }

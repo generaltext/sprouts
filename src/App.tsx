@@ -2,18 +2,19 @@
 // scrolling content area, and the poster as an overlay. First run with no
 // children shows onboarding.
 
-import { useState } from 'react'
 import { CalendarDays, Home, Image, LineChart, Loader2, Settings, Sprout } from 'lucide-react'
-import { useStore } from '~/lib/store'
-import { useTheme } from '~/hooks/use-theme'
+import { useState } from 'react'
+
+import { AddChild } from '~/components/AddChild'
 import { ChildSwitcher } from '~/components/ChildSwitcher'
 import { Dashboard } from '~/components/Dashboard'
+import { PosterView } from '~/components/PosterView'
+import { SettingsMenu } from '~/components/SettingsMenu'
 import { Timeline } from '~/components/Timeline'
 import { Trends } from '~/components/Trends'
-import { PosterView } from '~/components/PosterView'
-import { AddChild } from '~/components/AddChild'
-import { SettingsMenu } from '~/components/SettingsMenu'
+import { useTheme } from '~/hooks/use-theme'
 import { useGtLocation } from '~/lib/gt-location'
+import { useStore } from '~/lib/store'
 
 type View = 'home' | 'timeline' | 'trends'
 
@@ -42,7 +43,7 @@ export function App() {
 
   if (!ready) {
     return (
-      <div className="flex h-full items-center justify-center text-fg3">
+      <div className="text-fg3 flex h-full items-center justify-center">
         <Loader2 className="animate-spin" size={22} />
       </div>
     )
@@ -52,13 +53,13 @@ export function App() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex shrink-0 items-center gap-2 border-b border-line bg-panel/80 px-3 py-2 backdrop-blur-sm">
-        <span className="hidden text-accent sm:inline">
+      <header className="border-line bg-panel/80 flex shrink-0 items-center gap-2 border-b px-3 py-2 backdrop-blur-sm">
+        <span className="text-accent hidden sm:inline">
           <Sprout size={20} />
         </span>
         <ChildSwitcher />
 
-        <nav className="ml-auto flex items-center gap-0.5 rounded-lg bg-panel-2 p-0.5">
+        <nav className="bg-panel-2 ml-auto flex items-center gap-0.5 rounded-lg p-0.5">
           {TABS.map((t) => {
             const Icon = t.icon
             const active = view === t.view
@@ -82,14 +83,18 @@ export function App() {
           type="button"
           aria-label="Poster"
           onClick={() => setPoster(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-accent-fg hover:opacity-90 sm:px-2.5 sm:py-1.5"
+          className="bg-accent text-accent-fg inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold hover:opacity-90 sm:px-2.5 sm:py-1.5"
         >
           <Image size={17} />
           <span className="hidden sm:inline">Poster</span>
         </button>
 
         <SettingsMenu>
-          <button type="button" aria-label="Settings" className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-fg3 hover:bg-panel-2 hover:text-fg">
+          <button
+            type="button"
+            aria-label="Settings"
+            className="text-fg3 hover:bg-panel-2 hover:text-fg inline-flex h-9 w-9 items-center justify-center rounded-lg"
+          >
             <Settings size={18} />
           </button>
         </SettingsMenu>
@@ -110,11 +115,13 @@ function Onboarding() {
   return (
     <div className="flex h-full items-center justify-center px-6">
       <div className="w-full max-w-sm text-center">
-        <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+        <div className="bg-accent-soft text-accent mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl">
           <Sprout size={28} />
         </div>
         <h1 className="font-serif text-2xl font-semibold">Welcome to Sprouts</h1>
-        <p className="mt-2 text-sm text-fg2">A calm, private log of your little one's days. Start by adding your child.</p>
+        <p className="text-fg2 mt-2 text-sm">
+          A calm, private log of your little one's days. Start by adding your child.
+        </p>
         <div className="mt-5 flex justify-center">
           <AddChildInline />
         </div>
@@ -127,7 +134,11 @@ function AddChildInline() {
   const [open, setOpen] = useState(true)
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-fg hover:opacity-90">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="bg-accent text-accent-fg inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold hover:opacity-90"
+      >
         <Sprout size={16} /> Add a child
       </button>
       {open && <AddChild onClose={() => setOpen(false)} />}

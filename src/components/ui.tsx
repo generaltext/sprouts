@@ -1,31 +1,45 @@
 // Small shared UI primitives. Deliberately plain — the app's warmth comes from
 // the palette and layout, not from heavy components.
 
-import { type ButtonHTMLAttributes, type ReactNode, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
+import { type ButtonHTMLAttributes, type ReactNode, useEffect, useRef } from 'react'
 
 export function Button({
   variant = 'default',
   className = '',
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'primary' | 'ghost' | 'subtle' }) {
-  const base = 'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:pointer-events-none'
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'default' | 'primary' | 'ghost' | 'subtle'
+}) {
+  const base =
+    'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:pointer-events-none'
   const variants = {
     primary: 'bg-accent text-accent-fg hover:opacity-90',
     default: 'border border-line2 bg-panel text-fg hover:bg-panel-2',
     ghost: 'text-fg2 hover:bg-panel-2 hover:text-fg',
     subtle: 'bg-panel-2 text-fg2 hover:text-fg',
   }
-  return <button type="button" className={`${base} ${variants[variant]} px-3 py-2 ${className}`} {...props} />
+  return (
+    <button
+      type="button"
+      className={`${base} ${variants[variant]} px-3 py-2 ${className}`}
+      {...props}
+    />
+  )
 }
 
-export function IconButton({ label, className = '', children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { label: string }) {
+export function IconButton({
+  label,
+  className = '',
+  children,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { label: string }) {
   return (
     <button
       type="button"
       aria-label={label}
       title={label}
-      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-fg3 transition-colors hover:bg-panel-2 hover:text-fg ${className}`}
+      className={`text-fg3 hover:bg-panel-2 hover:text-fg inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${className}`}
       {...props}
     >
       {children}
@@ -34,23 +48,41 @@ export function IconButton({ label, className = '', children, ...props }: Button
 }
 
 export function ColorDot({ color, size = 10 }: { color: string; size?: number }) {
-  return <span className="inline-block shrink-0 rounded-full" style={{ background: color, width: size, height: size }} />
+  return (
+    <span
+      className="inline-block shrink-0 rounded-full"
+      style={{ background: color, width: size, height: size }}
+    />
+  )
 }
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint?: string
+  children: ReactNode
+}) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-fg3">{label}</span>
+      <span className="text-fg3 mb-1 block text-xs font-semibold tracking-wide uppercase">
+        {label}
+      </span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-fg4">{hint}</span>}
+      {hint && <span className="text-fg4 mt-1 block text-xs">{hint}</span>}
     </label>
   )
 }
 
-export function TextInput({ className = '', ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
+export function TextInput({
+  className = '',
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={`w-full rounded-lg border border-line2 bg-panel px-3 py-2 text-sm text-fg outline-none placeholder:text-fg4 focus:border-accent ${className}`}
+      className={`border-line2 bg-panel text-fg placeholder:text-fg4 focus:border-accent w-full rounded-lg border px-3 py-2 text-sm outline-none ${className}`}
       {...props}
     />
   )
@@ -58,7 +90,17 @@ export function TextInput({ className = '', ...props }: React.InputHTMLAttribute
 
 /** A bottom sheet on phones, a centered dialog on wider screens. Closes on
  *  Escape and backdrop click. */
-export function Sheet({ title, onClose, children, footer }: { title: string; onClose: () => void; children: ReactNode; footer?: ReactNode }) {
+export function Sheet({
+  title,
+  onClose,
+  children,
+  footer,
+}: {
+  title: string
+  onClose: () => void
+  children: ReactNode
+  footer?: ReactNode
+}) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -75,25 +117,33 @@ export function Sheet({ title, onClose, children, footer }: { title: string; onC
       <div
         ref={ref}
         tabIndex={-1}
-        className="card card-shadow flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-b-none rounded-t-2xl outline-none sm:rounded-2xl"
+        className="card card-shadow flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl rounded-b-none outline-none sm:rounded-2xl"
       >
-        <div className="flex items-center justify-between border-b border-line px-4 py-3">
+        <div className="border-line flex items-center justify-between border-b px-4 py-3">
           <h2 className="font-serif text-lg font-semibold">{title}</h2>
           <IconButton label="Close" onClick={onClose}>
             <X size={18} />
           </IconButton>
         </div>
         <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-4 py-4">{children}</div>
-        {footer && <div className="border-t border-line px-4 py-3">{footer}</div>}
+        {footer && <div className="border-line border-t px-4 py-3">{footer}</div>}
       </div>
     </div>
   )
 }
 
 /** A segmented single-choice control. */
-export function Segmented<T extends string | number>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode }[] }) {
+export function Segmented<T extends string | number>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T
+  onChange: (v: T) => void
+  options: { value: T; label: ReactNode }[]
+}) {
   return (
-    <div className="inline-flex rounded-lg border border-line2 bg-panel-2 p-0.5">
+    <div className="border-line2 bg-panel-2 inline-flex rounded-lg border p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
@@ -110,7 +160,17 @@ export function Segmented<T extends string | number>({ value, onChange, options 
   )
 }
 
-export function Chip({ active, onClick, children, color }: { active?: boolean; onClick?: () => void; children: ReactNode; color?: string }) {
+export function Chip({
+  active,
+  onClick,
+  children,
+  color,
+}: {
+  active?: boolean
+  onClick?: () => void
+  children: ReactNode
+  color?: string
+}) {
   return (
     <button
       type="button"

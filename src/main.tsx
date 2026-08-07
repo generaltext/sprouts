@@ -1,7 +1,9 @@
 import { createRoot } from 'react-dom/client'
-import { StoreProvider } from '~/lib/store'
+
 import { App } from '~/App'
 import { MissingRuntime } from '~/components/MissingRuntime'
+import { StoreProvider } from '~/lib/store'
+
 import '~/global.css'
 
 // The platform injects `window.gt` (a classic script) before this deferred module
@@ -22,7 +24,8 @@ function loadRuntime(): Promise<void> {
     window.__sproutsDemo = true
     const s = document.createElement('script')
     s.src = RUNTIME_URL
-    s.onload = () => (window.gt ? resolve() : reject(new Error('runtime loaded but window.gt missing')))
+    s.onload = () =>
+      window.gt ? resolve() : reject(new Error('runtime loaded but window.gt missing'))
     s.onerror = () => reject(new Error('failed to load the General Text runtime'))
     document.head.appendChild(s)
   })

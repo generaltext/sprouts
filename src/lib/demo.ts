@@ -51,7 +51,14 @@ export function demoSeed(): SeedData {
   const at = (dayStart: Date, hour: number, min = 0) =>
     new Date(dayStart.getTime() + hour * 3_600_000 + min * 60_000 + jitter(20))
   const push = (start: Date, data: Record<string, unknown>, actor = pick(CAREGIVERS)) =>
-    log.push({ id: newId('evt'), ts: start.toISOString(), actor, type: 'entry.log', subject: newId('ent'), data: { start: start.toISOString(), ...data } })
+    log.push({
+      id: newId('evt'),
+      ts: start.toISOString(),
+      actor,
+      type: 'entry.log',
+      subject: newId('ent'),
+      data: { start: start.toISOString(), ...data },
+    })
 
   for (let d = DAYS; d >= 0; d--) {
     const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() - d)
@@ -72,11 +79,21 @@ export function demoSeed(): SeedData {
     for (const h of [6, 9, 12, 15, 18, 21, 0]) {
       const s = at(day, h)
       if (rand() < 0.5) {
-        push(s, { kind: 'feed.bottle', volumeMl: 90 + Math.round(rand() * 60), contents: pick(['breastmilk', 'formula', 'mixed']) })
+        push(s, {
+          kind: 'feed.bottle',
+          volumeMl: 90 + Math.round(rand() * 60),
+          contents: pick(['breastmilk', 'formula', 'mixed']),
+        })
       } else {
         const left = Math.round(rand() * 600)
         const right = Math.round(rand() * 600)
-        push(s, { kind: 'feed.breast', end: new Date(s.getTime() + (left + right) * 1000).toISOString(), leftSec: left, rightSec: right, lastSide: pick(['left', 'right']) })
+        push(s, {
+          kind: 'feed.breast',
+          end: new Date(s.getTime() + (left + right) * 1000).toISOString(),
+          leftSec: left,
+          rightSec: right,
+          lastSide: pick(['left', 'right']),
+        })
       }
     }
 
@@ -84,21 +101,54 @@ export function demoSeed(): SeedData {
     for (const h of [6, 8, 11, 14, 17, 20]) {
       if (rand() < 0.15) continue
       const dirty = rand() < 0.4
-      push(at(day, h), { kind: 'diaper', wet: rand() < 0.85, dirty, ...(dirty && rand() < 0.3 ? { blowout: true } : {}) })
+      push(at(day, h), {
+        kind: 'diaper',
+        wet: rand() < 0.85,
+        dirty,
+        ...(dirty && rand() < 0.3 ? { blowout: true } : {}),
+      })
     }
 
     // The odd tummy-time and note.
     if (rand() < 0.6) {
       const s = at(day, 10)
-      push(s, { kind: 'tummy', end: new Date(s.getTime() + (5 + rand() * 15) * 60_000).toISOString(), label: 'Tummy time' })
+      push(s, {
+        kind: 'tummy',
+        end: new Date(s.getTime() + (5 + rand() * 15) * 60_000).toISOString(),
+        label: 'Tummy time',
+      })
     }
-    if (rand() < 0.15) push(at(day, 16), { kind: 'note', note: pick(['So many smiles today.', 'Rolled halfway over!', 'Loves the ceiling fan.', 'Fussy afternoon, better after a walk.']) })
+    if (rand() < 0.15)
+      push(at(day, 16), {
+        kind: 'note',
+        note: pick([
+          'So many smiles today.',
+          'Rolled halfway over!',
+          'Loves the ceiling fan.',
+          'Fussy afternoon, better after a walk.',
+        ]),
+      })
   }
 
   // A couple of growth points + a milestone.
-  push(new Date(birth.getTime() + 14 * 86_400_000), { kind: 'growth', weightG: 3800, heightCm: 53, headCm: 37 })
-  push(new Date(birth.getTime() + 42 * 86_400_000), { kind: 'growth', weightG: 4900, heightCm: 57, headCm: 39 })
-  push(new Date(now.getTime() - 3 * 86_400_000), { kind: 'growth', weightG: 5600, heightCm: 59.5, headCm: 40.5 })
+  push(new Date(birth.getTime() + 14 * 86_400_000), {
+    kind: 'growth',
+    weightG: 3800,
+    heightCm: 53,
+    headCm: 37,
+  })
+  push(new Date(birth.getTime() + 42 * 86_400_000), {
+    kind: 'growth',
+    weightG: 4900,
+    heightCm: 57,
+    headCm: 39,
+  })
+  push(new Date(now.getTime() - 3 * 86_400_000), {
+    kind: 'growth',
+    weightG: 5600,
+    heightCm: 59.5,
+    headCm: 40.5,
+  })
   push(new Date(now.getTime() - 7 * 86_400_000), { kind: 'milestone', label: 'First real giggle' })
 
   return { children, logs: { [childId]: log } }
@@ -108,6 +158,8 @@ export function demoSeed(): SeedData {
 export function seedToFiles(seed: SeedData): { children: string; logs: Record<string, string> } {
   return {
     children: seed.children.map(serializeEvent).join('\n') + '\n',
-    logs: Object.fromEntries(Object.entries(seed.logs).map(([id, evs]) => [id, evs.map(serializeEvent).join('\n') + '\n'])),
+    logs: Object.fromEntries(
+      Object.entries(seed.logs).map(([id, evs]) => [id, evs.map(serializeEvent).join('\n') + '\n']),
+    ),
   }
 }

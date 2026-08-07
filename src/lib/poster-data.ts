@@ -38,7 +38,11 @@ function splitSleep(startMs: number, endMs: number): { key: string; s: number; e
     const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
     const nextDay = dayStart + DAY_MS
     const segEnd = Math.min(endMs, nextDay)
-    out.push({ key: dayKeyOf(new Date(dayStart)), s: (cur - dayStart) / DAY_MS, e: (segEnd - dayStart) / DAY_MS })
+    out.push({
+      key: dayKeyOf(new Date(dayStart)),
+      s: (cur - dayStart) / DAY_MS,
+      e: (segEnd - dayStart) / DAY_MS,
+    })
     cur = segEnd
   }
   return out
@@ -58,7 +62,13 @@ export function buildPosterData(entries: Entry[], birthDate?: string): PosterDat
     const key = dayKeyOf(date)
     let d = byKey.get(key)
     if (!d) {
-      d = { key, date: new Date(date.getFullYear(), date.getMonth(), date.getDate()), sleep: [], feeds: [], diapers: [] }
+      d = {
+        key,
+        date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+        sleep: [],
+        feeds: [],
+        diapers: [],
+      }
       byKey.set(key, d)
     }
     return d

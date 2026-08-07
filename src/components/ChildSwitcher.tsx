@@ -1,12 +1,13 @@
 // The child switcher: the active child's name + age, tapping opens a menu to
 // switch between children, add a new one, or edit the active profile.
 
-import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, Pencil, Plus } from 'lucide-react'
-import { useStore } from '~/lib/store'
-import { ageAt } from '~/lib/dates'
-import { ColorDot } from '~/components/ui'
+import { useEffect, useRef, useState } from 'react'
+
 import { AddChild } from '~/components/AddChild'
+import { ColorDot } from '~/components/ui'
+import { ageAt } from '~/lib/dates'
+import { useStore } from '~/lib/store'
 import type { Child } from '~/lib/types'
 
 export function ChildSwitcher() {
@@ -34,18 +35,18 @@ export function ChildSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-panel-2"
+        className="hover:bg-panel-2 flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors"
       >
         <ColorDot color={activeChild.color} size={12} />
         <span className="flex flex-col leading-tight">
-          <span className="font-serif text-base font-semibold text-fg">{activeChild.name}</span>
-          {age && <span className="text-xs text-fg3">{age.label}</span>}
+          <span className="text-fg font-serif text-base font-semibold">{activeChild.name}</span>
+          {age && <span className="text-fg3 text-xs">{age.label}</span>}
         </span>
         <ChevronDown size={16} className="text-fg3" />
       </button>
 
       {open && (
-        <div className="card card-shadow absolute left-0 top-full z-40 mt-1 w-60 overflow-hidden py-1">
+        <div className="card card-shadow absolute top-full left-0 z-40 mt-1 w-60 overflow-hidden py-1">
           {visible.map((c) => {
             const a = ageAt(c.birthDate)
             return (
@@ -56,12 +57,12 @@ export function ChildSwitcher() {
                     setActiveChild(c.id)
                     setOpen(false)
                   }}
-                  className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-2 text-left hover:bg-panel-2"
+                  className="hover:bg-panel-2 flex min-w-0 flex-1 items-center gap-2.5 px-3 py-2 text-left"
                 >
                   <ColorDot color={c.color} size={11} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-fg">{c.name}</span>
-                    {a && <span className="block text-xs text-fg3">{a.label}</span>}
+                    <span className="text-fg block truncate text-sm font-medium">{c.name}</span>
+                    {a && <span className="text-fg3 block text-xs">{a.label}</span>}
                   </span>
                   {c.id === activeChild.id && <Check size={15} className="text-accent" />}
                 </button>
@@ -72,21 +73,21 @@ export function ChildSwitcher() {
                     setEditing(c)
                     setOpen(false)
                   }}
-                  className="mr-1 rounded-md p-1.5 text-fg4 hover:bg-panel-2 hover:text-fg"
+                  className="text-fg4 hover:bg-panel-2 hover:text-fg mr-1 rounded-md p-1.5"
                 >
                   <Pencil size={14} />
                 </button>
               </div>
             )
           })}
-          <div className="my-1 border-t border-line" />
+          <div className="border-line my-1 border-t" />
           <button
             type="button"
             onClick={() => {
               setAdding(true)
               setOpen(false)
             }}
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm font-medium text-fg2 hover:bg-panel-2"
+            className="text-fg2 hover:bg-panel-2 flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm font-medium"
           >
             <Plus size={15} /> Add a child
           </button>

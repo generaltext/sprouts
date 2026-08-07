@@ -13,7 +13,8 @@ function sorted(events: SproutsEvent[]): SproutsEvent[] {
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
-const numOrU = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined)
+const numOrU = (v: unknown): number | undefined =>
+  typeof v === 'number' && Number.isFinite(v) ? v : undefined
 const boolOrU = (v: unknown): boolean | undefined => (typeof v === 'boolean' ? v : undefined)
 
 // ── children ──────────────────────────────────────────────────────────────────
@@ -113,7 +114,8 @@ function toEntry(id: string, ev: SproutsEvent, prev: Entry | undefined): Entry |
 
   copyStr('note')
   copyNum('volumeMl')
-  if (['breastmilk', 'formula', 'mixed'].includes(str(d.contents))) out.contents = str(d.contents) as BottleContents
+  if (['breastmilk', 'formula', 'mixed'].includes(str(d.contents)))
+    out.contents = str(d.contents) as BottleContents
   else if (prev?.contents) out.contents = prev.contents
   copyNum('leftSec')
   copyNum('rightSec')
@@ -152,5 +154,7 @@ export function foldEntries(events: SproutsEvent[]): Entry[] {
       delete byId[id]
     }
   }
-  return Object.values(byId).sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : a.id < b.id ? -1 : 1))
+  return Object.values(byId).sort((a, b) =>
+    a.start < b.start ? -1 : a.start > b.start ? 1 : a.id < b.id ? -1 : 1,
+  )
 }

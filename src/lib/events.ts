@@ -47,7 +47,11 @@ export function parseEvent(line: string): SproutsEvent | null {
   if (!trimmed) return null
   try {
     const obj = JSON.parse(trimmed) as SproutsEvent
-    if (typeof obj.id === 'string' && typeof obj.type === 'string' && typeof obj.subject === 'string') {
+    if (
+      typeof obj.id === 'string' &&
+      typeof obj.type === 'string' &&
+      typeof obj.subject === 'string'
+    ) {
       return obj
     }
   } catch {

@@ -3,11 +3,12 @@
 // predictions. CSS bars (crisp, light, accessible).
 
 import { useMemo, useState } from 'react'
-import { useStore } from '~/lib/store'
+
+import { Segmented } from '~/components/ui'
 import { dayKey, dayKeyOf, formatDuration } from '~/lib/dates'
+import { useStore } from '~/lib/store'
 import { daySummary } from '~/lib/summary'
 import { formatVolume } from '~/lib/units'
-import { Segmented } from '~/components/ui'
 
 type Metric = 'sleep' | 'feeds' | 'diapers'
 const DAYNAME = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
@@ -36,7 +37,9 @@ export function WeekChart() {
         label = s.sleepSec ? formatDuration(s.sleepSec) : ''
       } else if (metric === 'feeds') {
         value = s.feedCount
-        label = s.feedCount ? `${s.feedCount}${s.feedVolumeMl ? ` · ${formatVolume(s.feedVolumeMl, units)}` : ''}` : ''
+        label = s.feedCount
+          ? `${s.feedCount}${s.feedVolumeMl ? ` · ${formatVolume(s.feedVolumeMl, units)}` : ''}`
+          : ''
       } else {
         value = s.diaperTotal
         label = s.diaperTotal ? `${s.diaperTotal} (${s.diaperWet}w · ${s.diaperDirty}d)` : ''
@@ -47,9 +50,15 @@ export function WeekChart() {
   }, [entries, endKey, metric, range, units])
 
   const max = Math.max(1, ...data.map((d) => d.value))
-  const color = metric === 'sleep' ? '--color-sleep' : metric === 'feeds' ? '--color-feed' : '--color-diaper'
+  const color =
+    metric === 'sleep' ? '--color-sleep' : metric === 'feeds' ? '--color-feed' : '--color-diaper'
   const avg = data.reduce((a, d) => a + d.value, 0) / data.length
-  const avgLabel = metric === 'sleep' ? `${formatDuration(avg * 3600)} sleep` : metric === 'feeds' ? `${avg.toFixed(1)} feeds` : `${avg.toFixed(1)} diapers`
+  const avgLabel =
+    metric === 'sleep'
+      ? `${formatDuration(avg * 3600)} sleep`
+      : metric === 'feeds'
+        ? `${avg.toFixed(1)} feeds`
+        : `${avg.toFixed(1)} diapers`
 
   return (
     <div>
@@ -63,28 +72,47 @@ export function WeekChart() {
             { value: 'diapers', label: 'Diapers' },
           ]}
         />
-        <Segmented<number> value={range} onChange={setRange} options={[{ value: 7, label: '7d' }, { value: 14, label: '14d' }, { value: 30, label: '30d' }]} />
+        <Segmented<number>
+          value={range}
+          onChange={setRange}
+          options={[
+            { value: 7, label: '7d' },
+            { value: 14, label: '14d' },
+            { value: 30, label: '30d' },
+          ]}
+        />
       </div>
 
       <div className="flex h-44 items-end gap-1">
         {data.map((d) => {
           const h = (d.value / max) * 100
           return (
-            <div key={d.key} className="group relative flex h-full flex-1 flex-col justify-end" title={`${d.date.toLocaleDateString()} · ${d.label || 'nothing logged'}`}>
-              <div className="w-full rounded-t" style={{ height: `${Math.max(d.value > 0 ? 3 : 0, h)}%`, background: `var(${color})`, opacity: 0.85 }} />
+            <div
+              key={d.key}
+              className="group relative flex h-full flex-1 flex-col justify-end"
+              title={`${d.date.toLocaleDateString()} · ${d.label || 'nothing logged'}`}
+            >
+              <div
+                className="w-full rounded-t"
+                style={{
+                  height: `${Math.max(d.value > 0 ? 3 : 0, h)}%`,
+                  background: `var(${color})`,
+                  opacity: 0.85,
+                }}
+              />
             </div>
           )
         })}
       </div>
       <div className="mt-1 flex gap-1">
         {data.map((d, i) => (
-          <div key={d.key} className="flex-1 text-center text-[10px] text-fg4">
+          <div key={d.key} className="text-fg4 flex-1 text-center text-[10px]">
             {range <= 14 ? DAYNAME[d.date.getDay()] : i % 5 === 0 ? d.date.getDate() : ''}
           </div>
         ))}
       </div>
-      <div className="mt-2 text-xs text-fg3">
-        Daily average over {range} days: <span className="font-medium text-fg2">{avgLabel}</span>
+      <div className="text-fg3 mt-2 text-xs">
+        Daily average over {range} days: <span className="text-fg2 font-medium">{avgLabel}</span>
       </div>
     </div>
   )

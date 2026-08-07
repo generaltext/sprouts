@@ -2,12 +2,13 @@
 // day-rows, radial spiral), palettes, layers, and a date range. Preview and
 // export share one renderer (lib/poster.ts), so the PNG matches the preview.
 
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { Download, X } from 'lucide-react'
-import { useStore } from '~/lib/store'
-import { buildPosterData, type PosterDay } from '~/lib/poster-data'
-import { drawPoster, POSTER_THEMES, type PosterOptions, type PosterTheme } from '~/lib/poster'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
 import { Field, Segmented } from '~/components/ui'
+import { drawPoster, POSTER_THEMES, type PosterOptions, type PosterTheme } from '~/lib/poster'
+import { buildPosterData, type PosterDay } from '~/lib/poster-data'
+import { useStore } from '~/lib/store'
 
 type RangeKey = 'all' | 'y1' | 'y2' | 'last12' | 'last6' | 'last3'
 const DAY = 86_400_000
@@ -20,7 +21,10 @@ export function PosterView({ onClose }: { onClose: () => void }) {
   const previewRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
-  const data = useMemo(() => buildPosterData(entries, activeChild?.birthDate), [entries, activeChild])
+  const data = useMemo(
+    () => buildPosterData(entries, activeChild?.birthDate),
+    [entries, activeChild],
+  )
 
   const [style, setStyle] = useState<'rows' | 'spiral'>('rows')
   const [theme, setTheme] = useState<PosterTheme>(POSTER_THEMES[0]!)
@@ -42,7 +46,15 @@ export function PosterView({ onClose }: { onClose: () => void }) {
 
   const dims = style === 'rows' ? { w: 2400, h: 3400 } : { w: 3000, h: 3000 }
   const opts: PosterOptions = useMemo(
-    () => ({ style, theme, title, subtitle, showFeeds, showDiapers, sleepColor: useChildColor ? activeChild?.color : undefined }),
+    () => ({
+      style,
+      theme,
+      title,
+      subtitle,
+      showFeeds,
+      showDiapers,
+      sleepColor: useChildColor ? activeChild?.color : undefined,
+    }),
     [style, theme, title, subtitle, showFeeds, showDiapers, useChildColor, activeChild],
   )
 
@@ -84,7 +96,10 @@ export function PosterView({ onClose }: { onClose: () => void }) {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${(title || 'sprouts').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-poster.png`
+      a.download = `${(title || 'sprouts')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')}-poster.png`
       a.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
     }, 'image/png')
@@ -97,22 +112,36 @@ export function PosterView({ onClose }: { onClose: () => void }) {
         {days.length > 0 ? (
           <canvas ref={previewRef} className="rounded-lg shadow-2xl" />
         ) : (
-          <div className="rounded-lg bg-panel px-6 py-4 text-sm text-fg3">Log some sleep to build a poster.</div>
+          <div className="bg-panel text-fg3 rounded-lg px-6 py-4 text-sm">
+            Log some sleep to build a poster.
+          </div>
         )}
       </div>
 
       {/* controls */}
-      <div className="scroll-thin flex w-full shrink-0 flex-col overflow-y-auto border-t border-line bg-panel sm:w-80 sm:border-l sm:border-t-0">
-        <div className="flex items-center justify-between border-b border-line p-3">
+      <div className="scroll-thin border-line bg-panel flex w-full shrink-0 flex-col overflow-y-auto border-t sm:w-80 sm:border-t-0 sm:border-l">
+        <div className="border-line flex items-center justify-between border-b p-3">
           <h2 className="font-serif text-lg font-semibold">Poster</h2>
-          <button type="button" onClick={onClose} className="rounded p-1 text-fg3 hover:bg-panel-2 hover:text-fg" aria-label="Close poster">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-fg3 hover:bg-panel-2 hover:text-fg rounded p-1"
+            aria-label="Close poster"
+          >
             <X size={18} />
           </button>
         </div>
 
         <div className="space-y-4 p-3">
           <Field label="Style">
-            <Segmented<'rows' | 'spiral'> value={style} onChange={setStyle} options={[{ value: 'rows', label: 'Day rows' }, { value: 'spiral', label: 'Spiral' }]} />
+            <Segmented<'rows' | 'spiral'>
+              value={style}
+              onChange={setStyle}
+              options={[
+                { value: 'rows', label: 'Day rows' },
+                { value: 'spiral', label: 'Spiral' },
+              ]}
+            />
           </Field>
 
           <Field label="Range">
@@ -140,10 +169,18 @@ export function PosterView({ onClose }: { onClose: () => void }) {
           </Field>
 
           <Field label="Title">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-md border border-line2 bg-panel px-2.5 py-1.5 text-sm outline-none focus:border-accent" />
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="border-line2 bg-panel focus:border-accent w-full rounded-md border px-2.5 py-1.5 text-sm outline-none"
+            />
           </Field>
           <Field label="Subtitle">
-            <input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full rounded-md border border-line2 bg-panel px-2.5 py-1.5 text-sm outline-none focus:border-accent" />
+            <input
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              className="border-line2 bg-panel focus:border-accent w-full rounded-md border px-2.5 py-1.5 text-sm outline-none"
+            />
           </Field>
 
           <Field label="Palette">
@@ -155,7 +192,10 @@ export function PosterView({ onClose }: { onClose: () => void }) {
                   onClick={() => setTheme(t)}
                   className={`flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm ${theme.name === t.name ? 'border-accent text-fg' : 'border-line2 text-fg2 hover:bg-panel-2'}`}
                 >
-                  <span className="h-4 w-4 rounded-full border border-black/10" style={{ background: t.bg }} />
+                  <span
+                    className="h-4 w-4 rounded-full border border-black/10"
+                    style={{ background: t.bg }}
+                  />
                   {t.name}
                 </button>
               ))}
@@ -166,22 +206,28 @@ export function PosterView({ onClose }: { onClose: () => void }) {
             <div className="space-y-1.5">
               <Toggle label="Feed marks" checked={showFeeds} onChange={setShowFeeds} />
               <Toggle label="Diaper marks" checked={showDiapers} onChange={setShowDiapers} />
-              {activeChild && <Toggle label={`Sleep in ${activeChild.name}'s colour`} checked={useChildColor} onChange={setUseChildColor} />}
+              {activeChild && (
+                <Toggle
+                  label={`Sleep in ${activeChild.name}'s colour`}
+                  checked={useChildColor}
+                  onChange={setUseChildColor}
+                />
+              )}
             </div>
           </Field>
         </div>
 
-        <div className="mt-auto border-t border-line p-3">
+        <div className="border-line mt-auto border-t p-3">
           <button
             type="button"
             onClick={download}
             disabled={days.length === 0}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2.5 text-sm font-semibold text-accent-fg hover:opacity-90 disabled:opacity-40"
+            className="bg-accent text-accent-fg flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-40"
           >
             <Download size={16} />
             Download PNG
           </button>
-          <p className="mt-2 text-center text-xs text-fg4">
+          <p className="text-fg4 mt-2 text-center text-xs">
             {dims.w}×{dims.h}px · print-ready
           </p>
         </div>
@@ -190,10 +236,23 @@ export function PosterView({ onClose }: { onClose: () => void }) {
   )
 }
 
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-sm text-fg2 hover:bg-panel-2">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="accent-[var(--color-accent)]" />
+    <label className="text-fg2 hover:bg-panel-2 flex cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-sm">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="accent-[var(--color-accent)]"
+      />
       {label}
     </label>
   )

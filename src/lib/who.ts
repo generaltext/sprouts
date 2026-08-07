@@ -49,7 +49,12 @@ function lmsAt(rows: LMS[], ageMonths: number): LMS | null {
   const rHi = rows[hi]
   if (!rLo || !rHi) return rows[Math.round(a)] ?? null
   const t = a - lo
-  return { age: a, l: rLo.l + (rHi.l - rLo.l) * t, m: rLo.m + (rHi.m - rLo.m) * t, s: rLo.s + (rHi.s - rLo.s) * t }
+  return {
+    age: a,
+    l: rLo.l + (rHi.l - rLo.l) * t,
+    m: rLo.m + (rHi.m - rLo.m) * t,
+    s: rLo.s + (rHi.s - rLo.s) * t,
+  }
 }
 
 function valueFor(lms: LMS, z: number): number {
@@ -68,7 +73,12 @@ export function bandValue(measure: Measure, sex: Sex, ageMonths: number, z: numb
 
 /** All five band curves sampled across [0, maxAge], for drawing. Each is a list
  *  of { age, value }. Value units: kg (weight) / cm (length, head). */
-export function bandCurves(measure: Measure, sex: Sex, maxAgeMonths: number, stepMonths = 1): { z: number; p: number; points: { age: number; value: number }[] }[] | null {
+export function bandCurves(
+  measure: Measure,
+  sex: Sex,
+  maxAgeMonths: number,
+  stepMonths = 1,
+): { z: number; p: number; points: { age: number; value: number }[] }[] | null {
   const rows = series(measure, sex)
   if (!rows) return null
   const cap = Math.min(MAX_AGE, Math.max(1, maxAgeMonths))
@@ -92,7 +102,12 @@ function normalCdf(z: number): number {
 }
 
 /** The percentile (0–100) of a measured value, or null if sex unspecified. */
-export function percentileOf(measure: Measure, sex: Sex, ageMonths: number, value: number): number | null {
+export function percentileOf(
+  measure: Measure,
+  sex: Sex,
+  ageMonths: number,
+  value: number,
+): number | null {
   const rows = series(measure, sex)
   if (!rows) return null
   const lms = lmsAt(rows, ageMonths)

@@ -31,8 +31,10 @@ export function formatVolume(ml: number, u: UnitSystem = getUnitPref()): string 
 }
 export const volumeUnitLabel = (u: UnitSystem = getUnitPref()) => (u === 'metric' ? 'ml' : 'fl oz')
 /** parse a number the user typed in the display unit → canonical ml */
-export const volumeToMl = (value: number, u: UnitSystem = getUnitPref()) => (u === 'metric' ? value : flozToMl(value))
-export const mlToDisplay = (ml: number, u: UnitSystem = getUnitPref()) => (u === 'metric' ? Math.round(ml) : round1(mlToFloz(ml)))
+export const volumeToMl = (value: number, u: UnitSystem = getUnitPref()) =>
+  u === 'metric' ? value : flozToMl(value)
+export const mlToDisplay = (ml: number, u: UnitSystem = getUnitPref()) =>
+  u === 'metric' ? Math.round(ml) : round1(mlToFloz(ml))
 
 // ── weight (growth) ───────────────────────────────────────────────────────────
 

@@ -2,7 +2,7 @@
 
 A calm, private baby log. Feeds, sleep, diapers, growth, milestones, logged in a
 tap from either parent's phone, merging into one shared timeline. It starts as a
-high-frequency newborn tracker and matures into a keepsake: the file *is* the baby
+high-frequency newborn tracker and matures into a keepsake: the file _is_ the baby
 book, and it's yours forever.
 
 - **Everything in a tap.** Bottle, breast, pump, sleep, diaper, tummy time,

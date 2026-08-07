@@ -68,7 +68,6 @@ export interface GtRuntime {
    *  opened (a deep link, or a refresh restoring the fragment) and again on every
    *  back/forward step. Returns an unsubscribe. Optional: absent on older runtimes. */
   onLocation?(cb: (path: string) => void): () => void
-
 }
 
 declare global {

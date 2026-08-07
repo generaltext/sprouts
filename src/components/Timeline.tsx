@@ -4,12 +4,13 @@
 // of mounting thousands of rows at once.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useStore } from '~/lib/store'
+
+import { EntryCard } from '~/components/EntryCard'
+import { Chip } from '~/components/ui'
 import { formatDayLabel, formatDuration } from '~/lib/dates'
+import { useStore } from '~/lib/store'
 import { daySummary, groupByDay } from '~/lib/summary'
 import { formatVolume } from '~/lib/units'
-import { Chip } from '~/components/ui'
-import { EntryCard } from '~/components/EntryCard'
 
 const CHUNK = 10 // days rendered per step
 
@@ -19,7 +20,10 @@ export function Timeline() {
   const [shown, setShown] = useState(CHUNK)
   const sentinel = useRef<HTMLDivElement>(null)
 
-  const filtered = useMemo(() => (who ? entries.filter((e) => e.actor?.id === who) : entries), [entries, who])
+  const filtered = useMemo(
+    () => (who ? entries.filter((e) => e.actor?.id === who) : entries),
+    [entries, who],
+  )
 
   // Day sections, newest first. Grouping is one O(n) pass; we render a window.
   const days = useMemo(() => {
@@ -64,23 +68,30 @@ export function Timeline() {
       )}
 
       {days.length === 0 ? (
-        <div className="py-16 text-center text-sm text-fg3">Nothing logged yet.</div>
+        <div className="text-fg3 py-16 text-center text-sm">Nothing logged yet.</div>
       ) : (
         <div className="space-y-5">
           {visible.map(({ key, list }) => {
             const s = daySummary(list, key)
             const bits: string[] = []
             if (s.sleepSec) bits.push(`${formatDuration(s.sleepSec)} sleep`)
-            if (s.feedCount) bits.push(`${s.feedCount} feeds${s.feedVolumeMl ? ` · ${formatVolume(s.feedVolumeMl, units)}` : ''}`)
+            if (s.feedCount)
+              bits.push(
+                `${s.feedCount} feeds${s.feedVolumeMl ? ` · ${formatVolume(s.feedVolumeMl, units)}` : ''}`,
+              )
             if (s.diaperTotal) bits.push(`${s.diaperTotal} diapers`)
             return (
               <section key={key}>
-                <div className="sticky top-0 z-10 -mx-1 flex items-baseline justify-between bg-bg/90 px-1 py-1.5 backdrop-blur-sm">
-                  <h3 className="font-serif text-sm font-semibold text-fg">{formatDayLabel(key)}</h3>
-                  {bits.length > 0 && <span className="truncate pl-2 text-xs text-fg3">{bits.join('  ·  ')}</span>}
+                <div className="bg-bg/90 sticky top-0 z-10 -mx-1 flex items-baseline justify-between px-1 py-1.5 backdrop-blur-sm">
+                  <h3 className="text-fg font-serif text-sm font-semibold">
+                    {formatDayLabel(key)}
+                  </h3>
+                  {bits.length > 0 && (
+                    <span className="text-fg3 truncate pl-2 text-xs">{bits.join('  ·  ')}</span>
+                  )}
                 </div>
                 <div className="card mt-1 p-1">
-                  <div className="divide-y divide-line/60">
+                  <div className="divide-line/60 divide-y">
                     {list.map((e) => (
                       <EntryCard key={e.id} entry={e} />
                     ))}
@@ -90,7 +101,7 @@ export function Timeline() {
             )
           })}
           {shown < days.length && (
-            <div ref={sentinel} className="py-4 text-center text-xs text-fg4">
+            <div ref={sentinel} className="text-fg4 py-4 text-center text-xs">
               Loading earlier days… ({days.length - shown} more)
             </div>
           )}

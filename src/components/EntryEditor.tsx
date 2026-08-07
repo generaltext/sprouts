@@ -2,28 +2,54 @@
 // kind's `data` payload and calls the store (new → logEntry, edit → updateEntry).
 // Times are entered in local wall-clock and stored as ISO instants.
 
-import { useMemo, useState } from 'react'
 import { Trash2 } from 'lucide-react'
-import { useStore } from '~/lib/store'
-import { fromLocalInput, nowLocalInput, toLocalInput } from '~/lib/dates'
-import { cmToIn, gToLbOz, inToCm, lbOzToG, mlToDisplay, volumeToMl, volumeUnitLabel, lengthUnitLabel } from '~/lib/units'
-import { KIND_LABEL, isRanged, type BottleContents, type Entry, type EntryKind, type Side } from '~/lib/types'
-import { Button, Field, Segmented, Sheet, TextInput } from '~/components/ui'
+import { useMemo, useState } from 'react'
+
 import { KIND_ICON } from '~/components/icons'
+import { Button, Field, Segmented, Sheet, TextInput } from '~/components/ui'
+import { fromLocalInput, nowLocalInput, toLocalInput } from '~/lib/dates'
+import { useStore } from '~/lib/store'
+import {
+  KIND_LABEL,
+  isRanged,
+  type BottleContents,
+  type Entry,
+  type EntryKind,
+  type Side,
+} from '~/lib/types'
+import {
+  cmToIn,
+  gToLbOz,
+  inToCm,
+  lbOzToG,
+  mlToDisplay,
+  volumeToMl,
+  volumeUnitLabel,
+  lengthUnitLabel,
+} from '~/lib/units'
 
 const num = (s: string): number | undefined => {
   const n = Number(s)
   return s.trim() !== '' && Number.isFinite(n) ? n : undefined
 }
 
-export function EntryEditor({ kind, entry, onClose }: { kind: EntryKind; entry?: Entry; onClose: () => void }) {
+export function EntryEditor({
+  kind,
+  entry,
+  onClose,
+}: {
+  kind: EntryKind
+  entry?: Entry
+  onClose: () => void
+}) {
   const { units, logEntry, updateEntry, removeEntry } = useStore()
   const editing = !!entry
   const Icon = KIND_ICON[kind]
 
   const init = useMemo(() => buildInitial(kind, entry, units), [kind, entry, units])
   const [f, setF] = useState(init)
-  const set = <K extends keyof typeof init>(k: K, v: (typeof init)[K]) => setF((prev) => ({ ...prev, [k]: v }))
+  const set = <K extends keyof typeof init>(k: K, v: (typeof init)[K]) =>
+    setF((prev) => ({ ...prev, [k]: v }))
   const [busy, setBusy] = useState(false)
 
   const save = async () => {
@@ -75,8 +101,12 @@ export function EntryEditor({ kind, entry, onClose }: { kind: EntryKind; entry?:
         </div>
       }
     >
-      <div className="mb-4 flex items-center gap-2 text-fg2">
-        <span style={{ color: `var(--color-${kind.startsWith('feed') ? kind.split('.')[1] === 'bottle' ? 'feed' : kind.split('.')[1] : kind})` }}>
+      <div className="text-fg2 mb-4 flex items-center gap-2">
+        <span
+          style={{
+            color: `var(--color-${kind.startsWith('feed') ? (kind.split('.')[1] === 'bottle' ? 'feed' : kind.split('.')[1]) : kind})`,
+          }}
+        >
           <Icon size={18} />
         </span>
         <span className="text-sm font-medium">{KIND_LABEL[kind]}</span>
@@ -85,15 +115,30 @@ export function EntryEditor({ kind, entry, onClose }: { kind: EntryKind; entry?:
       <div className="space-y-4">
         {/* time */}
         <Field label={ranged || kind === 'sleep' ? 'Start' : 'Time'}>
-          <TextInput type="datetime-local" value={f.start} onChange={(e) => set('start', e.target.value)} />
+          <TextInput
+            type="datetime-local"
+            value={f.start}
+            onChange={(e) => set('start', e.target.value)}
+          />
         </Field>
 
         {(ranged || kind === 'sleep') && (
           <Field label="End" hint={f.running ? 'Timer running; leave to keep timing' : undefined}>
             <div className="flex items-center gap-2">
-              <TextInput type="datetime-local" value={f.end} disabled={f.running} onChange={(e) => set('end', e.target.value)} className={f.running ? 'opacity-50' : ''} />
-              <label className="flex shrink-0 items-center gap-1.5 text-xs text-fg3">
-                <input type="checkbox" checked={f.running} onChange={(e) => set('running', e.target.checked)} className="accent-[var(--color-accent)]" />
+              <TextInput
+                type="datetime-local"
+                value={f.end}
+                disabled={f.running}
+                onChange={(e) => set('end', e.target.value)}
+                className={f.running ? 'opacity-50' : ''}
+              />
+              <label className="text-fg3 flex shrink-0 items-center gap-1.5 text-xs">
+                <input
+                  type="checkbox"
+                  checked={f.running}
+                  onChange={(e) => set('running', e.target.checked)}
+                  className="accent-[var(--color-accent)]"
+                />
                 running
               </label>
             </div>
@@ -104,7 +149,13 @@ export function EntryEditor({ kind, entry, onClose }: { kind: EntryKind; entry?:
         {kind === 'feed.bottle' && (
           <>
             <Field label={`Volume (${volUnit})`}>
-              <TextInput type="number" inputMode="decimal" value={f.volume} onChange={(e) => set('volume', e.target.value)} placeholder="e.g. 4" />
+              <TextInput
+                type="number"
+                inputMode="decimal"
+                value={f.volume}
+                onChange={(e) => set('volume', e.target.value)}
+                placeholder="e.g. 4"
+              />
             </Field>
             <Field label="Contents">
               <Segmented<BottleContents>
@@ -124,14 +175,31 @@ export function EntryEditor({ kind, entry, onClose }: { kind: EntryKind; entry?:
           <>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Left (min)">
-                <TextInput type="number" inputMode="decimal" value={f.leftMin} onChange={(e) => set('leftMin', e.target.value)} />
+                <TextInput
+                  type="number"
+                  inputMode="decimal"
+                  value={f.leftMin}
+                  onChange={(e) => set('leftMin', e.target.value)}
+                />
               </Field>
               <Field label="Right (min)">
-                <TextInput type="number" inputMode="decimal" value={f.rightMin} onChange={(e) => set('rightMin', e.target.value)} />
+                <TextInput
+                  type="number"
+                  inputMode="decimal"
+                  value={f.rightMin}
+                  onChange={(e) => set('rightMin', e.target.value)}
+                />
               </Field>
             </div>
             <Field label="Last side" hint="So you know where to start next time">
-              <Segmented<Side> value={f.lastSide} onChange={(v) => set('lastSide', v)} options={[{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }]} />
+              <Segmented<Side>
+                value={f.lastSide}
+                onChange={(v) => set('lastSide', v)}
+                options={[
+                  { value: 'left', label: 'Left' },
+                  { value: 'right', label: 'Right' },
+                ]}
+              />
             </Field>
           </>
         )}
@@ -139,17 +207,31 @@ export function EntryEditor({ kind, entry, onClose }: { kind: EntryKind; entry?:
         {kind === 'feed.pump' && (
           <div className="grid grid-cols-2 gap-3">
             <Field label={`Left (${volUnit})`}>
-              <TextInput type="number" inputMode="decimal" value={f.leftVol} onChange={(e) => set('leftVol', e.target.value)} />
+              <TextInput
+                type="number"
+                inputMode="decimal"
+                value={f.leftVol}
+                onChange={(e) => set('leftVol', e.target.value)}
+              />
             </Field>
             <Field label={`Right (${volUnit})`}>
-              <TextInput type="number" inputMode="decimal" value={f.rightVol} onChange={(e) => set('rightVol', e.target.value)} />
+              <TextInput
+                type="number"
+                inputMode="decimal"
+                value={f.rightVol}
+                onChange={(e) => set('rightVol', e.target.value)}
+              />
             </Field>
           </div>
         )}
 
         {kind === 'feed.solid' && (
           <Field label="Food">
-            <TextInput value={f.food} onChange={(e) => set('food', e.target.value)} placeholder="e.g. mashed banana" />
+            <TextInput
+              value={f.food}
+              onChange={(e) => set('food', e.target.value)}
+              placeholder="e.g. mashed banana"
+            />
           </Field>
         )}
 
@@ -162,7 +244,11 @@ export function EntryEditor({ kind, entry, onClose }: { kind: EntryKind; entry?:
             </div>
             {f.dirty && (
               <Field label="Colour (optional)">
-                <TextInput value={f.stoolColor} onChange={(e) => set('stoolColor', e.target.value)} placeholder="e.g. yellow, green" />
+                <TextInput
+                  value={f.stoolColor}
+                  onChange={(e) => set('stoolColor', e.target.value)}
+                  placeholder="e.g. yellow, green"
+                />
               </Field>
             )}
           </>
@@ -171,37 +257,68 @@ export function EntryEditor({ kind, entry, onClose }: { kind: EntryKind; entry?:
         {kind === 'growth' && (
           <div className="grid grid-cols-3 gap-3">
             <Field label={units === 'metric' ? 'Weight (kg)' : 'Weight (lb)'}>
-              <TextInput type="number" inputMode="decimal" value={f.weight} onChange={(e) => set('weight', e.target.value)} />
+              <TextInput
+                type="number"
+                inputMode="decimal"
+                value={f.weight}
+                onChange={(e) => set('weight', e.target.value)}
+              />
             </Field>
             <Field label={`Height (${lenUnit})`}>
-              <TextInput type="number" inputMode="decimal" value={f.height} onChange={(e) => set('height', e.target.value)} />
+              <TextInput
+                type="number"
+                inputMode="decimal"
+                value={f.height}
+                onChange={(e) => set('height', e.target.value)}
+              />
             </Field>
             <Field label={`Head (${lenUnit})`}>
-              <TextInput type="number" inputMode="decimal" value={f.head} onChange={(e) => set('head', e.target.value)} />
+              <TextInput
+                type="number"
+                inputMode="decimal"
+                value={f.head}
+                onChange={(e) => set('head', e.target.value)}
+              />
             </Field>
           </div>
         )}
 
         {kind === 'tummy' && (
           <Field label="Label">
-            <TextInput value={f.label} onChange={(e) => set('label', e.target.value)} placeholder="Tummy time" />
+            <TextInput
+              value={f.label}
+              onChange={(e) => set('label', e.target.value)}
+              placeholder="Tummy time"
+            />
           </Field>
         )}
 
         {kind === 'medicine' && (
           <div className="grid grid-cols-2 gap-3">
             <Field label="Name">
-              <TextInput value={f.medName} onChange={(e) => set('medName', e.target.value)} placeholder="e.g. Vitamin D" />
+              <TextInput
+                value={f.medName}
+                onChange={(e) => set('medName', e.target.value)}
+                placeholder="e.g. Vitamin D"
+              />
             </Field>
             <Field label="Dose (optional)">
-              <TextInput value={f.dose} onChange={(e) => set('dose', e.target.value)} placeholder="e.g. 400 IU" />
+              <TextInput
+                value={f.dose}
+                onChange={(e) => set('dose', e.target.value)}
+                placeholder="e.g. 400 IU"
+              />
             </Field>
           </div>
         )}
 
         {kind === 'milestone' && (
           <Field label="Milestone">
-            <TextInput value={f.label} onChange={(e) => set('label', e.target.value)} placeholder="e.g. First smile" />
+            <TextInput
+              value={f.label}
+              onChange={(e) => set('label', e.target.value)}
+              placeholder="e.g. First smile"
+            />
           </Field>
         )}
 
@@ -211,7 +328,7 @@ export function EntryEditor({ kind, entry, onClose }: { kind: EntryKind; entry?:
             onChange={(e) => set('note', e.target.value)}
             rows={kind === 'note' ? 4 : 2}
             placeholder={kind === 'note' ? 'What happened…' : 'Optional'}
-            className="w-full resize-none rounded-lg border border-line2 bg-panel px-3 py-2 text-sm text-fg outline-none placeholder:text-fg4 focus:border-accent"
+            className="border-line2 bg-panel text-fg placeholder:text-fg4 focus:border-accent w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none"
           />
         </Field>
       </div>
@@ -241,8 +358,15 @@ function buildInitial(kind: EntryKind, entry: Entry | undefined, units: 'imperia
   const e = entry
   const startIso = e?.start ?? new Date().toISOString()
   const secToMin = (s?: number) => (s ? String(Math.round((s / 60) * 10) / 10) : '')
-  const weightStr = e?.weightG ? (units === 'metric' ? String(Math.round((e.weightG / 1000) * 100) / 100) : lbFromG(e.weightG)) : ''
-  const lenStr = (cm?: number) => (cm ? String(units === 'metric' ? Math.round(cm * 10) / 10 : Math.round(cmToIn(cm) * 10) / 10) : '')
+  const weightStr = e?.weightG
+    ? units === 'metric'
+      ? String(Math.round((e.weightG / 1000) * 100) / 100)
+      : lbFromG(e.weightG)
+    : ''
+  const lenStr = (cm?: number) =>
+    cm
+      ? String(units === 'metric' ? Math.round(cm * 10) / 10 : Math.round(cmToIn(cm) * 10) / 10)
+      : ''
   return {
     start: toLocalInput(startIso),
     end: e?.end ? toLocalInput(e.end) : e ? '' : nowLocalInput(),
@@ -275,7 +399,11 @@ function lbFromG(g: number): string {
   return String(Math.round((lb + oz / 16) * 100) / 100)
 }
 
-function buildData(kind: EntryKind, f: FormState, units: 'imperial' | 'metric'): Record<string, unknown> {
+function buildData(
+  kind: EntryKind,
+  f: FormState,
+  units: 'imperial' | 'metric',
+): Record<string, unknown> {
   const start = fromLocalInput(f.start) || new Date().toISOString()
   const data: Record<string, unknown> = { kind, start }
   if (f.note.trim()) data.note = f.note.trim()
@@ -302,7 +430,10 @@ function buildData(kind: EntryKind, f: FormState, units: 'imperial' | 'metric'):
       if (r != null) data.rightSec = Math.round(r * 60)
       data.lastSide = f.lastSide
       if (f.running) data.end = null
-      else if ((l ?? 0) + (r ?? 0) > 0) data.end = new Date(new Date(start).getTime() + ((l ?? 0) + (r ?? 0)) * 60_000).toISOString()
+      else if ((l ?? 0) + (r ?? 0) > 0)
+        data.end = new Date(
+          new Date(start).getTime() + ((l ?? 0) + (r ?? 0)) * 60_000,
+        ).toISOString()
       break
     }
     case 'feed.pump': {
