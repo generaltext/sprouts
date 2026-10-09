@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const APP_DIR = resolve(__dirname, '..')
 const META_CSV =
-  '/Users/travis/Dropbox/Workspace/proj_saltbark/proj_generalText/proj_gt-meta/planning/apps/sprouts/export_narababy_arthur_20260713.csv'
+  '/Users/travis/Dropbox/saltbark/code/_meta/planning/generaltext/apps/sprouts/_local/export_narababy_arthur_20260713.csv'
 
 const CSV_PATH = process.argv[2] ? resolve(process.argv[2]) : META_CSV
 const OUT_PATH = resolve(APP_DIR, 'src/data/seed.dev.json')
